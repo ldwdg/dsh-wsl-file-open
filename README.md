@@ -124,6 +124,9 @@ curl -b /tmp/c.txt http://127.0.0.1:30808/open-in-app/apps     # {"apps":[...]}
 
 Then click a card and confirm the file is **selected** in Explorer.
 
+Verification opens real Windows windows; close them and delete probe files afterwards
+(see the skill's *Cleanup after verification* section).
+
 ## Configuration
 
 | Variable | Default | Purpose |

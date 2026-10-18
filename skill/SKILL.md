@@ -90,6 +90,49 @@ Editing rules:
   example Navicat Premium 17) launch without opening the file. Use Explorer's right-click
   "Open with" for those.
 
+## Cleanup after verification
+
+Every check here opens real Windows windows and may launch applications. Clean up before
+handing the work back:
+
+1. Close the windows the test opened, gently:
+
+   ```powershell
+   Get-Process Typora,notepad,navicat -ErrorAction SilentlyContinue |
+     Where-Object { $_.MainWindowTitle -like '*probe*' -or $_.MainWindowTitle -eq '' } |
+     ForEach-Object { $null = $_.CloseMainWindow() }
+   ```
+
+   Use `CloseMainWindow()`, never `Stop-Process -Force` on an application that may hold
+   unsaved user work: a forced kill skips its shutdown path and can lose state (a real
+   incident: repeated force-kills of Navicat were followed by a lost activation state).
+   A test-only process with no window left over (for example leftover Typora helpers) is
+   safe to stop.
+
+2. Close Explorer windows opened by reveal tests (they accumulate):
+
+   ```powershell
+   (New-Object -ComObject Shell.Application).Windows() |
+     Where-Object { $_.LocationURL -like '*<probe-folder>*' } |
+     ForEach-Object { $_.Quit() }
+   ```
+
+3. Delete the probe files and scripts you created on the Windows side
+   (`D:\...probe*`, `se_test.ps1`, …) and any temporary directories on the host.
+
+4. Confirm nothing remains:
+
+   ```powershell
+   Get-Process navicat,typora,notepad -ErrorAction SilentlyContinue |
+     Select-Object Id,ProcessName,MainWindowTitle
+   ```
+
+   Empty output plus no `*probe*` files on the Windows drive means clean.
+
+5. Never close a window you did not open, and never kill a user application just to
+   "clean up". If a process is ambiguous (same application, user document), list it and
+   ask.
+
 ## Compatibility
 
 - Tested against DSH `0.2.0-rc.2`. The four fields are treated as replaceable host
