@@ -84,6 +84,12 @@ Editing rules:
 - Do not wrap `openWorkspacePath`: in DSH 0.2 the controller invokes the four fields
   itself, so replacing the fields preserves its path verification and error mapping.
 
+## Known limitations
+
+- "Open with…" is best-effort: applications that ignore command-line file arguments (for
+  example Navicat Premium 17) launch without opening the file. Use Explorer's right-click
+  "Open with" for those.
+
 ## Compatibility
 
 - Tested against DSH `0.2.0-rc.2`. The four fields are treated as replaceable host

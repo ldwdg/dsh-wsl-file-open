@@ -103,7 +103,12 @@ HKCU\SOFTWARE\Classes\Navicat\shell\open\command
   = "…\navicat.exe" -uri "%1"
 ```
 
-Invoking the handler through COM hangs; running the registered command opens the file.
+Invoking the handler through COM hangs; running the registered command opens the file
+for applications that accept a file argument. It is necessary but not sufficient: Navicat
+17 also ignores a command-line file argument (`"%1"`, `-uri file:///…`, and
+ShellExecuteEx with the application class were all verified to leave the file closed), so
+its only working integration is the shell handler, which blocks in a service context.
+Per-application open is therefore best-effort.
 
 ## 3. `@deepseek-ai/dsh-host-open-in-app` (the "Open In…" button)
 

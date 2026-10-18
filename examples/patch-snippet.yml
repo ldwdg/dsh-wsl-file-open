@@ -1,8 +1,8 @@
 # Appended to ~/.dsh/profiles/<profile>/cordis.patch.yml by install.sh.
-# The anonymous package.json beside the plugin is required: DSH's package
-# inventory silently excludes a relative plugin whose nearest manifest has no
-# `name`. A manifest WITH a name but no version makes every model request fail
-# with REQUEST_EXTENSION.
+# The manifest beside the vendored plugin must be named and versioned
+# ({"name":"dsh-wsl-file-open","version":"…","private":true,"type":"module"}).
+# A name without a version makes every model request fail with
+# REQUEST_EXTENSION; a manifest without a name is silently excluded.
 # >>> dsh-wsl-file-open >>>
 - insert:
     - id: wsl-file-open

@@ -143,6 +143,17 @@ bash uninstall.sh --with-xdg-open  # also restores/removes the xdg-open shim
 systemctl --user restart dsh-web
 ```
 
+## Known limitations
+
+- **"Open with…" is best-effort per application.** The plugin runs the application's
+  registered command. Applications that do not accept a file argument on the command line
+  launch without opening the file. **Navicat Premium 17** is one: its registration is
+  `"…\navicat.exe" "%1"`, yet `"%1"`, `-uri file:///…` and ShellExecuteEx with the
+  application class all leave the file closed (verified). Use Explorer's right-click
+  *Open with* for those applications.
+- The application list only contains handlers Windows registers for the file extension;
+  an application with no registration will not appear.
+
 ## Compatibility caveats
 
 - The plugin relies on `sessionController` fields that DSH documents as **internal test
