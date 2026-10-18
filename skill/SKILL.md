@@ -2,10 +2,9 @@
 name: dsh-wsl-file-open
 description: "Use when DSH web (DeepSeek Harness) on WSL cannot hand files or folders to the Windows desktop: clicking a deliverable card shows 打开失败 / Could not open, the explorer opening lands on Documents or does not select the file, the 'Open with…' menu says 无法获取应用列表 / Could not load applications, or the session-header 'Open In…' button fails. Installs/repairs a profile plugin that fixes the four native-open integrations."
 version: 1.0.0
-platforms: [linux]
 metadata:
-  hermes:
-    tags: [dsh, wsl, explorer, reveal, native-open, profile-patch, file-open]
+  tags: [dsh, wsl, explorer, reveal, native-open, profile-patch, file-open]
+  tested-with: dsh 0.2.0-rc.2
 ---
 
 # dsh-wsl-file-open
@@ -39,18 +38,23 @@ Hard-refresh the browser afterwards. Buttons may be grey for a moment on first u
 ## What it installs
 
 ```
-~/.dsh/profiles/<profile>/wsl-file-open/    entry.mjs  impl.mjs  program.ps1  package.json
+~/.dsh/profiles/<profile>/wsl-file-open/    index.js  impl.mjs  program.ps1  package.json
 ~/.dsh/profiles/<profile>/cordis.patch.yml  one marked insert block
 ~/.dsh/skills/dsh-wsl-file-open/SKILL.md
 ~/.local/bin/xdg-open                       optional, for the "Open In…" button
 ```
 
+The repository is also a valid DSH bundle: `package.json` declares
+`dsh.bundle.patch` → `cordis.patch.yml`, which inserts the package by name. With `pnpm`
+available, install it the standard way (`dsh plugin --profile web add <spec>`, then add
+`dsh-wsl-file-open` to `dsh.profile.bundles`); the vendored installer above is the
+zero-dependency path.
+
 The plugin replaces four `sessionController` host integrations
 (`fileApplications`, `openFileApplication`, `openPath`, `revealPath`). It does not patch
-DSH packages. The anonymous `package.json` (`{"private": true}`) is mandatory: DSH's
-package inventory silently excludes a relative plugin whose nearest manifest has no
-`name`, but **fails every model request** when that manifest has a `name` without a
-`version` (`REQUEST_EXTENSION`).
+DSH packages. The vendored manifest must be **named and versioned** (`type: module` included). DSH's
+package inventory accepts that, silently excludes a manifest without `name`, and fails
+every model request with `REQUEST_EXTENSION` for a `name` without `version`.
 
 ## Verify
 
@@ -75,7 +79,7 @@ Host-side checks are in `docs/verification.md`.
 Editing rules:
 
 - `program.ps1` is read from disk on every call — edit it freely.
-- `impl.mjs` / `entry.mjs` are cached by module URL. After editing them, **rename the
+- `impl.mjs` / `index.js` are cached by module URL. After editing them, **rename the
   entry and update the patch block**, or restart the service.
 - Do not wrap `openWorkspacePath`: in DSH 0.2 the controller invokes the four fields
   itself, so replacing the fields preserves its path verification and error mapping.

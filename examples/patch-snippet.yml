@@ -6,5 +6,5 @@
 # >>> dsh-wsl-file-open >>>
 - insert:
     - id: wsl-file-open
-      name: './wsl-file-open/entry.mjs'
+      name: './wsl-file-open/index.js'
 # <<< dsh-wsl-file-open <<<

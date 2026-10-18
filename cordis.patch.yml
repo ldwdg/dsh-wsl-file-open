@@ -1,0 +1,12 @@
+# Bundle patch for dsh-wsl-file-open.
+#
+# A profile that lists this package in `dsh.profile.bundles` gets this row
+# inserted automatically; the row name is the package itself, so the loader
+# imports `lib/index.js` (this package's main) and calls its `apply`.
+#
+# The vendored install (install.sh) does NOT use this file: it copies the
+# plugin into the profile and inserts a relative entry instead, which keeps the
+# install working without pnpm.
+- insert:
+    - id: wsl-file-open
+      name: "dsh-wsl-file-open"

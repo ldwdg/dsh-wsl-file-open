@@ -137,17 +137,18 @@ Two more details:
 
 ## 4. Profile patch layer and the package inventory
 
-The plugin is mounted as a loose module through `cordis.patch.yml`. DSH's
-`dsh-plugin-package-inventory-deepseek` resolves the nearest `package.json` for every
-active loose module before each model request:
+DSH's `dsh-plugin-package-inventory-deepseek` resolves the nearest `package.json` for
+every active loose module before each model request:
 
-- manifest **without** `name` → identity `undefined` → entry silently excluded (what
-  this project relies on);
-- manifest **with** `name` but without `version` → throws
-  `must declare non-empty name and version`, and every model request fails with
-  `LlmError(REQUEST_EXTENSION)`.
+- `name` + `version` → the entry contributes a package identity (what the installer
+  writes for the vendored copy, and what the published package has);
+- no `name` → identity `undefined`, entry silently excluded;
+- `name` without `version` → throws `must declare non-empty name and version`, and every
+  model request fails with `LlmError(REQUEST_EXTENSION)`.
 
-That is why `plugin/package.json` contains only `{"private": true}`.
+A relative plugin therefore needs a **named, versioned** manifest (or an anonymous one).
+The installer writes `{"name":"dsh-wsl-file-open","version":"…","private":true,
+"type":"module"}` beside the copied `lib/` files.
 
 ## Observed reload behaviour
 

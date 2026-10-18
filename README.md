@@ -35,7 +35,7 @@ Details and code references: [docs/upstream-analysis.md](docs/upstream-analysis.
 ~/.dsh/profiles/<profile>/cordis.patch.yml   ← insert one loader entry
         │
         ▼
-wsl-file-open/entry.mjs                      ← stable entry (re-exports)
+wsl-file-open/index.js                       ← package main (re-exports)
         │
         ▼
 wsl-file-open/impl.mjs                       ← overrides four sessionController integrations
@@ -48,8 +48,10 @@ wsl-file-open/impl.mjs                       ← overrides four sessionControlle
 wsl-file-open/program.ps1                    ← read from disk on every call (editable live)
 ```
 
-The plugin is mounted through DSH's documented **profile patch layer**; it does not
-modify any DSH package. It replaces `sessionController` fields that DSH treats as
+The plugin is a normal DSH package: `package.json` declares `main`/`exports`, and
+`cordis.patch.yml` declares a **bundle patch** so the package can also be installed the
+standard way (see *Alternative: install as a bundle*). The vendored installer mounts it
+through DSH's documented **profile patch layer**; neither path modifies any DSH package. It replaces `sessionController` fields that DSH treats as
 replaceable host integrations, so the controller keeps its own path verification, error
 mapping, and wire schema.
 
@@ -74,9 +76,25 @@ bash install.sh --with-xdg-open     # also install ~/.local/bin/xdg-open (fixes 
 bash install.sh --force-xdg-open    # overwrite an existing ~/.local/bin/xdg-open (backs it up)
 ```
 
-The installer is idempotent: it backs up `cordis.patch.yml`, copies the plugin into the
-profile, adds a marked insert block only when absent, and installs the skill to
-`~/.dsh/skills/dsh-wsl-file-open/`.
+The installer is idempotent: it backs up `cordis.patch.yml`, copies `lib/` into the
+profile, writes a named+versioned `package.json` beside it, adds a marked insert block only
+when absent, and installs the skill to `~/.dsh/skills/dsh-wsl-file-open/`.
+
+### Alternative: install as a bundle
+
+The repository is also a valid DSH bundle (`package.json` → `dsh.bundle.patch`). If you
+have `pnpm` on PATH:
+
+```bash
+dsh plugin --profile web add github:ldwdg/dsh-wsl-file-open   # or a git/file spec
+# then add "dsh-wsl-file-open" to dsh.profile.bundles in ~/.dsh/profiles/web/package.json
+systemctl --user restart dsh-web
+```
+
+This path needs no vendored copy; the bundle patch inserts the package by name and pnpm
+also installs the plugin's `@deepseek-ai/dsh-native-command` dependency. The default
+installer remains dependency-free (it works without pnpm or a package registry) because the
+vendored copy resolves that library from the DSH installation closure.
 
 ### Restart is required
 
@@ -132,7 +150,7 @@ systemctl --user restart dsh-web
   ordinary instance properties today; a future DSH release may rename or privatise them.
   The plugin checks each field with `typeof … === 'function'` and simply leaves it alone
   when absent, so a change degrades to upstream behaviour instead of breaking DSH.
-- `program.ps1` is re-read per call; `impl.mjs` / `entry.mjs` are **cached by URL** — after
+- `program.ps1` is re-read per call; `impl.mjs` / `index.js` are **cached by URL** — after
   editing them, rename the entry (and update the patch) or restart the service.
 - Selecting a file launches a PowerShell process (≈3–6 s). Reveal is the slow path;
   default-open is faster.

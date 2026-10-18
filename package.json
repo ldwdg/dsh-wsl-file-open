@@ -1,0 +1,41 @@
+{
+  "name": "dsh-wsl-file-open",
+  "version": "1.0.0",
+  "description": "Fix native file open (reveal / open with / Open In) for DSH web on WSL",
+  "type": "module",
+  "main": "./lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "skill",
+    "docs",
+    "extras",
+    "scripts",
+    "install.sh",
+    "uninstall.sh",
+    "README.md",
+    "LICENSE",
+    "examples"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "wsl",
+    "explorer",
+    "plugin"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@deepseek-ai/dsh-native-command": "^0.2.0-rc.2"
+  }
+}

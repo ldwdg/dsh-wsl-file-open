@@ -13,7 +13,7 @@ PLUGIN_DIR="$PROFILE_DIR/wsl-file-open"
 PATCH="$PROFILE_DIR/cordis.patch.yml"
 SKILL_DIR="$DSH_HOME/skills/dsh-wsl-file-open"
 ENTRY_ID="wsl-file-open"
-ENTRY_NAME="./wsl-file-open/entry.mjs"
+ENTRY_NAME="./wsl-file-open/index.js"
 MARK_BEGIN="# >>> dsh-wsl-file-open >>>"
 MARK_END="# <<< dsh-wsl-file-open <<<"
 
@@ -33,7 +33,7 @@ say() { printf '%s\n' "$*"; }
 fail() { printf 'install: %s\n' "$*" >&2; exit 1; }
 
 [ -d "$PROFILE_DIR" ] || fail "profile not found: $PROFILE_DIR (set DSH_PROFILE)"
-[ -f "$HERE/plugin/entry.mjs" ] || fail "run this from the repository root"
+[ -f "$HERE/lib/index.js" ] || fail "run this from the repository root"
 
 if command -v dsh >/dev/null 2>&1; then
   say "DSH: $(dsh --version 2>/dev/null | head -1)"
@@ -47,9 +47,20 @@ fi
 
 # 1. plugin files
 mkdir -p "$PLUGIN_DIR"
-cp "$HERE/plugin/entry.mjs" "$HERE/plugin/impl.mjs" "$HERE/plugin/program.ps1" "$PLUGIN_DIR/"
-printf '{\n  "private": true\n}\n' > "$PLUGIN_DIR/package.json"
-say "plugin: $PLUGIN_DIR"
+cp "$HERE/lib/index.js" "$HERE/lib/impl.mjs" "$HERE/lib/program.ps1" "$PLUGIN_DIR/"
+# A named, versioned manifest is what DSH's package inventory expects. A
+# manifest with a name but no version makes every model request fail with
+# REQUEST_EXTENSION; `"type": "module"` is required for index.js to load as ESM.
+VERSION=$(node -p "require('$HERE/package.json').version" 2>/dev/null || printf '1.0.0')
+cat > "$PLUGIN_DIR/package.json" <<JSON
+{
+  "name": "dsh-wsl-file-open",
+  "version": "$VERSION",
+  "private": true,
+  "type": "module"
+}
+JSON
+say "plugin: $PLUGIN_DIR (v$VERSION)"
 
 # 2. patch entry (marked block, added once)
 if [ -f "$PATCH" ]; then
@@ -66,7 +77,9 @@ else
   # block sequence to it produces invalid YAML, so drop that line first and keep
   # any surrounding comments.
   if [ "$(grep -vE '^[[:space:]]*(#|$)' "$PATCH" | tr -d '[:space:]')" = "[]" ]; then
-    grep -vE '^[[:space:]]*\[\][[:space:]]*$' "$PATCH" > "$PATCH.tmp"
+    # `grep -v` exits 1 when every line is filtered out (a patch that is only
+    # `[]`); tolerate that so `set -e` does not abort the install.
+    { grep -vE '^[[:space:]]*\[\][[:space:]]*$' "$PATCH" || true; } > "$PATCH.tmp"
     mv "$PATCH.tmp" "$PATCH"
   fi
   # A missing trailing newline would glue the marker onto the last line.
